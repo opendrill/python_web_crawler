@@ -1,6 +1,7 @@
 from urllib.parse import *
 from bs4 import BeautifulSoup, Tag
 from typing import TypedDict
+import requests
 
 #BeautifulSoup() - creates an object out of the html text
 #.find() - finds a specified tag within the object
@@ -14,11 +15,24 @@ class page_data(TypedDict):
     image_urls: list[str]
 
 def normalize_url(url: str,)-> str:
+    #This needs touching up
     url = urlsplit(url)
     path = url.path
-    if path[-1] == "/":
+    if path.endswith('/'):
         path = path[:-1]
-    return url.netloc + path
+    return url.scheme + "://" + url.netloc + path
+
+def get_html(url: str)-> str:
+    #will need to change the headers later for general use.
+    response = requests.get(url, headers={"User-Agent": "BootCrawler/1.0",})
+    #Error checking.
+    if response.status_code >= 400 and response.status_code <= 499:
+        raise Exception(f"client side error, status code is {response.status_code}")
+    if response.status_code >= 500 and response.status_code <= 599:
+        raise Exception(f"server side error, status code is {response.status_code}")
+    if response.headers['Content-Type'] == None:
+        raise Exception("content-type header is not text/html")
+    return response.text
 
 def get_heading_from_html(html: str)-> str:
     soup = BeautifulSoup(html, "html.parser")
