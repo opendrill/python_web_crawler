@@ -88,3 +88,30 @@ def extract_page_data(html: str, base_url: str)-> dict[str]:
         "outgoing_links": get_urls_from_html(html, base_url),
         "image_urls": get_images_from_html(html, base_url)
     }
+
+#Recursion
+def crawl_page(base_url: str, current_url: str=None, crawled_pages_data: dict[str, page_data]=None):
+    #First crawl_page() call will have none as the value for current_url.
+    if current_url == None:
+        current_url = base_url
+    #Check current url is same domain as base url, if not, return to avoid crawling links from different domains.
+    b = urlsplit(base_url)
+    c = urlsplit(current_url)
+    if b.netloc != c.netloc:
+        return
+    #Normalise the current url
+    normalized_url = normalize_url(current_url)
+    #Check if this url is already a key in page_data, avoid crawling the same url twice.
+    if crawled_pages_data == None: #Necessary check since the first crawl_page() call will have None as the value.
+        crawled_pages_data = {}
+    if normalized_url in crawled_pages_data:
+        return
+    #Get the html of the current_url and print the result to terminal.
+    html = get_html(normalized_url)
+    #Pass the html and current_url to extract_page_data()
+    page_data = extract_page_data(html, normalized_url) #Dictionary for this url.
+    crawled_pages_data[normalized_url] = page_data #Dictionary of all crawled urls dictionaries.
+    #Use the extracted page data's outgoing links as the urls to crawl next.
+    for link in page_data['outgoing_links']:
+        crawl_page(base_url, link, crawled_pages_data)
+    return crawled_pages_data   
