@@ -1,12 +1,12 @@
 from urllib.parse import *
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 from typing import TypedDict
-import requests
 import aiohttp
 import asyncio
 
 #BeautifulSoup() - creates an object out of the html text
-#.find() - finds a specified tag within the object
+#.find() - finds a specified tag within the object, first instance of it.
+#.find_all() - finds all instances of the specified tag.
 #.get_text() - gets the text from the tag.
 
 class PageData(TypedDict):
@@ -17,16 +17,19 @@ class PageData(TypedDict):
     image_urls: list[str]
 
 class AsyncCrawler():
-    def __init__(self, base_url):
+    def __init__(self, base_url, max_concurrency, max_pages):
         self.base_url = base_url
         self.base_domain = urlsplit(base_url).netloc
         self.page_data = {}
         self.visited = set() #Sets are unique lists, prevent duplicate crawls.
         self.lock = asyncio.Lock()
-        self.max_concurrency = 5 #How many http get requests  can be ran simultaneously.
+        self.max_concurrency = max_concurrency #How many http get requests  can be ran simultaneously.
         self.semaphore = asyncio.Semaphore(self.max_concurrency) #Semaphore is like a counter. Counts down to 0.
         self.session = None
-    
+        self.max_pages = max_pages
+        self.should_stop = False
+        self.all_tasks = set()
+
     async def __aenter__(self):
         self.session = aiohttp.ClientSession()
         return self
@@ -36,14 +39,18 @@ class AsyncCrawler():
 
     async def add_page_visit(self, normalized_url):
         async with self.lock:
+            if self.should_stop == True:
+                return False
+            if len(self.visited) == self.max_pages:
+                self.should_stop = True
+                print(f"Max number of pages ({self.max_pages}) crawled. Stopping.")
+                return False
             if normalized_url in self.visited:
                 return False
-            else:
-                self.visited.add(normalized_url)
-                return True
+            self.visited.add(normalized_url)
+            return True
     
     async def get_html(self, url: str)-> str:
-
         #####DON'T UNDERSTAND#####
         async with self.session.get(url, headers={}) as response:
         #####DON'T UNDERSTAND#####
@@ -53,11 +60,14 @@ class AsyncCrawler():
                 raise Exception(f"client side error, status code is {response.status}")
             if response.status >= 500 and response.status <= 599:
                 raise Exception(f"server side error, status code is {response.status}")
+            #Needs revision
             if response.headers['Content-Type'] == None:
                 raise Exception("content-type header is not text/html")
             return await response.text()
 
     async def crawl_page(self, current_url: str):
+        if self.should_stop == True:
+            return
         #Check domain matches.
         c = urlsplit(current_url)
         if c.netloc != self.base_domain:
@@ -84,17 +94,21 @@ class AsyncCrawler():
         for link in current_page_data["outgoing_links"]:
             task = asyncio.create_task(self.crawl_page(link))
             tasks.append(task)
-
-        #####DON'T UNDERSTAND#####
-        await asyncio.gather(*tasks)
-        #####DON'T UNDERSTAND#####
+            self.all_tasks.add(task)
+        try:
+            #Waiting for all tasks to be unpacked from the list and finished.
+            await asyncio.gather(*tasks)
+        finally:
+            for task in tasks:
+                #.discard won't error if the item isn't in the list.
+                self.all_tasks.discard(task)
 
     async def crawl(self):
         await self.crawl_page(self.base_url)
         return self.page_data
 
-async def crawl_site_async(base_url):
-    async with AsyncCrawler(base_url) as crawler:
+async def crawl_site_async(base_url, max_concurrency, max_pages):
+    async with AsyncCrawler(base_url, max_concurrency, max_pages) as crawler:
         return await crawler.crawl()
 
 def normalize_url(url: str,)-> str:
@@ -162,5 +176,3 @@ def extract_page_data(html: str, base_url: str)-> dict[str]:
     }
     print(d)
     return d
-
-#Need to read up on asyncio .session .Lock, with as, .gather, everything really.
