@@ -1,0 +1,4 @@
+# requirements.txt file
+beautifulsoup4==4.13.4
+aiohttp==3.12.12
+requests==2.32.4

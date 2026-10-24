@@ -25,11 +25,9 @@ async def main():
     if len(sys.argv) < 4:
         print("too few arguments provided, refer to the README.md")
         sys.exit(1)
-
     if len(sys.argv) > 4:
         print("too many arguments provided, refer to the README.md")
         sys.exit(1)
-
     #Check arg 1 is a url
     parsed = urlparse(sys.argv[1])
     if parsed.scheme != "https" or not parsed.netloc:
@@ -42,10 +40,13 @@ async def main():
     report_name = 'report.json'
 
     print("starting crawl of:", sys.argv[1])
+    
     page_data = await crawl_site_async(sys.argv[1], max_concurrency, max_pages)
-
-    write_json_report(page_data, report_name)
+    
     print(f"finished crawl of: {sys.argv[1]}")
+    
+    write_json_report(page_data, report_name)
+    
     print(f"report generated: {report_name}")
 
 if __name__ == "__main__":
