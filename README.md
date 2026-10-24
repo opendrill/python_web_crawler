@@ -2,9 +2,13 @@ Making a web crawler in Python to practice http requests and using asyncio.
 
 Python version: 3.12
 
-Package dependencies:
-1) BeautifulSoup4 4.13.4
-2) aiohttp 3.12.12
+# Dependencies:
+    # Python version: 3.12
+
+    # Packages:
+    1) BeautifulSoup4 4.13.4
+    2) aiohttp 3.12.12
+    3) requests 2.32.4
 
 # Instructions:
     # Clone the repo
