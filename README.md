@@ -9,15 +9,22 @@
 
 # Instructions:
     1) Clone the repo
-    git clone main https://github.com/opendrill/python_web_crawler.git
-
+    git clone https://github.com/opendrill/python_web_crawler.git
+    
     2) Cd into the project directory
     cd ./python_web_crawler
+    
+    3) Create a virtual environment
+    python3 -m venv .venv
+    
+    4) Activate the virtual environment
+    On Linux: source .venv/bin/activate
+    On Windows: .venv\Scripts\activate #Haven't tried on Windows.
 
-    3) Download requirements from requirements.txt
+    5) Download requirements from requirements.txt
     pip install -r requirements.txt
 
-    4) Run the web crawler!
+    6) Run the web crawler!
     python3 main.py max_concurrency max_pages
 
 # Command examples:
