@@ -1,4 +1,5 @@
 from crawl import *
+from json_report import write_json_report
 import sys
 #sys creates a list of arguments, the script itself is always [0], first argument is [1], and so on.
 
@@ -38,9 +39,14 @@ async def main():
     #Validate arg inputs for 2 and 3
     max_concurrency = arg_int_check(sys.argv[2], 2)
     max_pages = arg_int_check(sys.argv[3], 3)
+    report_name = 'report.json'
 
     print("starting crawl of:", sys.argv[1])
     page_data = await crawl_site_async(sys.argv[1], max_concurrency, max_pages)
+
+    write_json_report(page_data, report_name)
+    print(f"finished crawl of: {sys.argv[1]}")
+    print(f"report generated: {report_name}")
 
 if __name__ == "__main__":
     asyncio.run(main())

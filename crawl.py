@@ -60,7 +60,7 @@ class AsyncCrawler():
                 raise Exception(f"client side error, status code is {response.status}")
             if response.status >= 500 and response.status <= 599:
                 raise Exception(f"server side error, status code is {response.status}")
-            #Needs revision
+            #Need to check.
             if response.headers['Content-Type'] == None:
                 raise Exception("content-type header is not text/html")
             return await response.text()
@@ -166,13 +166,10 @@ def get_images_from_html(html: str, base_url: str)-> list[str]:
     return img_list
 
 def extract_page_data(html: str, base_url: str)-> dict[str]:
-    print(f"Extracted page data for {base_url}:")
-    d = {
+    return {
         "url": base_url,
         "heading": get_heading_from_html(html),
         "first_paragraph": get_first_paragraph_from_html(html),
         "outgoing_links": get_urls_from_html(html, base_url),
         "image_urls": get_images_from_html(html, base_url)
     }
-    print(d)
-    return d
