@@ -1,3 +1,8 @@
+# Intro:
+    This is a basic web crawler that creates a dictionary where each url crawled is a key and each value is a nested dictionary of strings and lists, containing the following information; "url", "heading", "first_paragraph", "outgoing_links", and "image_urls".
+    
+    There are issues with using this on some websites, anything with half decent security will return http status codes 403 or 429 for "forbidden" and "too many requests", I will not be adding workarounds for these as the point of this project was to practice/learn specific things that I feel I have now done. This is meant to be a basic test web crawler for learning the fundamentals of how they work, not a sophisticated one to be seriously used.
+
 # Dependencies:
     # Python version:
     3.12
@@ -28,10 +33,10 @@
     python3 main.py max_concurrency max_pages
 
 # Command examples:
-    1) python3 main.py 5 100
-    2) python3 main.py 5 unlimited
-    3) python3 main.py unlimited 100
-    4) python3 main.py unlimited unlimited
+    1) python3 main.py https://example-url.com 5 100
+    2) python3 main.py https://example-url.com 5 unlimited
+    3) python3 main.py https://example-url.com unlimited 100
+    4) python3 main.py https://example-url.com unlimited unlimited
 
 # Important notes:
     1) max_concurrency and max_pages must both be integers (whole numbers).

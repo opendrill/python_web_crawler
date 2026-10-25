@@ -3,8 +3,6 @@ from json_report import write_json_report
 import sys
 #sys creates a list of arguments, the script itself is always [0], first argument is [1], and so on.
 
-#I would like to come back to this and refine how users add arguments by putting proper parameters in place at some point.
-
 #Validating input for arguments 2 or 3.
 def arg_int_check(arg, arg_num):
     if arg == "unlimited":

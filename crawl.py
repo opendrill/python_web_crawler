@@ -51,10 +51,7 @@ class AsyncCrawler():
             return True
     
     async def get_html(self, url: str)-> str:
-        #####DON'T UNDERSTAND#####
-        async with self.session.get(url, headers={}) as response:
-        #####DON'T UNDERSTAND#####
-
+        async with self.session.get(url, headers={'User-Agent': 'Mozilla/5.0 (platform; rv:gecko-version) Gecko/gecko-trail Firefox/firefox-version'}) as response:
             #Error checking.
             if response.status >= 400 and response.status <= 499:
                 raise Exception(f"client side error, status code is {response.status}")
@@ -82,13 +79,8 @@ class AsyncCrawler():
             html = await self.get_html(normalized_url)
         #Fill out the page_data dictionary.
         current_page_data = extract_page_data(html, normalized_url)
-
-        #####DON'T UNDERSTAND#####
         async with self.lock:
-        #####DON'T UNDERSTAND#####
-
             self.page_data[normalized_url] = current_page_data #Self.page data is a dict of all the current_page_data dicts.
-
         #Creating list of tasks (found urls) to crawl next.
         tasks = []
         for link in current_page_data["outgoing_links"]:
