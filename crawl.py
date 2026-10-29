@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 from typing import TypedDict
 import aiohttp
 import asyncio
+import random
+import time
 
 #BeautifulSoup() - creates an object out of the html text
 #.find() - finds a specified tag within the object, first instance of it.
@@ -29,6 +31,7 @@ class AsyncCrawler():
         self.max_pages = max_pages
         self.should_stop = False
         self.all_tasks = set()
+        self.timeout = aiohttp.ClientTimeout(60, 10) #(TotalTime, ConnectionTime)
 
     async def __aenter__(self):
         self.session = aiohttp.ClientSession()
@@ -51,13 +54,15 @@ class AsyncCrawler():
             return True
     
     async def get_html(self, url: str)-> str:
-        async with self.session.get(url, headers={'User-Agent': 'Mozilla/5.0 (platform; rv:gecko-version) Gecko/gecko-trail Firefox/firefox-version'}) as response:
+        #Fake user-agent header to get around some 403: Forbidden blocks.
+        async with self.session.get(url, timeout=self.timeout, headers={'User-Agent': 'Mozilla/5.0 (platform; rv:gecko-version) Gecko/gecko-trail Firefox/firefox-version'}) as response:
             #Error checking.
-            if response.status >= 400 and response.status <= 499:
-                raise Exception(f"client side error, status code is {response.status}")
+            if response.status >= 400 and response.status <= 499 and response.status != 429:
+                print(f"Unable to crawl {url}, client side error, status code is {response.status}")
+                return None
             if response.status >= 500 and response.status <= 599:
-                raise Exception(f"server side error, status code is {response.status}")
-            #Need to check.
+                print(f"unable to crawl {url} server side error, status code is {response.status}")
+                return None
             if response.headers['Content-Type'] == None:
                 raise Exception("content-type header is not text/html")
             return await response.text()
@@ -77,6 +82,9 @@ class AsyncCrawler():
         #Get html content of the url
         async with self.semaphore:
             html = await self.get_html(normalized_url)
+            #Skipping urls that error.
+            if html is None:
+                return
         #Fill out the page_data dictionary.
         current_page_data = extract_page_data(html, normalized_url)
         async with self.lock:
